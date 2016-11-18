@@ -25,14 +25,15 @@ CREATE TABLE entry (
 
        PRIMARY KEY (id),
        
-       KEY (user_id)
+       KEY (user_id),
+       KEY (user_id, updated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE comment (
        `id` BIGINT UNSIGNED NOT NULL,
 
        `entry_id` BIGINT UNSIGNED NOT NULL,
-       `user_id` BIGINT UNSIGNED NOT NULL,
+       `commenter_id` BIGINT UNSIGNED NOT NULL,
        `body` VARCHAR(1024) NOT NULL,
 
        `created_at` DATETIME NOT NULL,
@@ -41,5 +42,5 @@ CREATE TABLE comment (
        PRIMARY KEY (id),
 
        KEY (entry_id),
-       KEY (user_id)
+       KEY (commenter_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
