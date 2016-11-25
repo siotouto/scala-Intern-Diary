@@ -5,7 +5,7 @@ import org.joda.time.LocalDateTime
 case class Comment(
   id: Long,
   entryId: Long,
-  userId: Long,
+  commenterId: Long,
   body: String,
   createdAt: LocalDateTime,
   updatedAt: LocalDateTime
