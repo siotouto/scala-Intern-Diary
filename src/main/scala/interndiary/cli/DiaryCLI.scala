@@ -27,10 +27,10 @@ object DiaryCLI {
               write(app, title, body)
             case "read" :: "all" :: rest =>
               val author = rest.headOption.getOrElse(userName)
-              read(app, readTitleOnly = false, author)
+              read(app, false, author)
             case "read" :: "title" :: rest =>
               val author = rest.headOption.getOrElse(userName)
-              read(app, readTitleOnly = true, author)
+              read(app, true, author)
             case "delete" :: entryIdStr :: _ =>
               delete(app, entryIdStr)
             case "comment" :: entryIdStr :: body :: _ =>
@@ -45,8 +45,9 @@ object DiaryCLI {
     }
   }
 
-  def write(app: DiaryApp, title: String, body: String)
-    (implicit ctx: Context): Int = {
+  def write(app: DiaryApp, title: String, body: String)(implicit
+    ctx: Context
+  ): Int = {
     app.write(title, body) match {
       case Right(entry) =>
         println("Wrote " + prettifyEntry(entry))
@@ -57,8 +58,9 @@ object DiaryCLI {
     }
   }
 
-  def read(app: DiaryApp, readTitleOnly: Boolean = false, userName: String)
-    (implicit ctx: Context): Int = {
+  def read(app: DiaryApp, readTitleOnly: Boolean, userName: String)(implicit
+    ctx: Context
+  ): Int = {
     app.read(userName) match {
       case Right(entries) =>
         println(
@@ -76,9 +78,10 @@ object DiaryCLI {
     }
   }
 
-  def delete(app: DiaryApp, entryIdStr: String)
-    (implicit ctx: Context): Int = {
-    allCatch opt entryIdStr.toLong match{
+  def delete(app: DiaryApp, entryIdStr: String)(implicit
+    ctx: Context
+  ): Int = {
+    allCatch opt entryIdStr.toLong match {
       case Some(entryId) =>
         app.delete(entryId) match {
           case Right(entry) =>
@@ -94,9 +97,10 @@ object DiaryCLI {
     }
   }
 
-  def comment(app: DiaryApp, entryIdStr: String, body: String)
-    (implicit ctx: Context): Int = {
-    allCatch opt entryIdStr.toLong match{
+  def comment(app: DiaryApp, entryIdStr: String, body: String)(implicit
+    ctx: Context
+  ): Int = {
+    allCatch opt entryIdStr.toLong match {
       case Some(entryId) =>
         app.comment(entryId, body) match {
           case Right(entry) =>
@@ -125,7 +129,7 @@ object DiaryCLI {
     1
   }
 
-  private[this] def prettifyEntry(entry: Entry, readTitleOnly: Boolean = false)
+  private def prettifyEntry(entry: Entry, readTitleOnly: Boolean = false)
       : String = {
     f"${entry.id}%5d: ${entry.title}%s" +
     (

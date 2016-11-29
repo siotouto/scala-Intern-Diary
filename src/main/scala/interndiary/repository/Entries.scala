@@ -13,37 +13,32 @@ object Entries {
   private implicit val getEntryResult =
     GetResult(r => Entry(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
-  def findById(entryId: Long)(implicit ctx: Context)
-      : Option[Entry] = {
-    run(
-      sql"""
+  def findById(entryId: Long)(implicit
+    ctx: Context
+  ): Option[Entry] = run(sql"""
         SELECT * 
         FROM entry 
-        WHERE id = ${entryId} LIMIT 1
-     """.as[Entry].map(_.headOption)
-    )
-  }
+        WHERE id = ${entryId} 
+        LIMIT 1
+    """.as[Entry].map(_.headOption)
+  )
 
-  def listByUserId(userId: Long)(implicit ctx: Context)
-      : Option[Seq[Entry]] = {
-    allCatch opt run(
-      sql"""
+  def listByUserId(userId: Long)(implicit
+    ctx: Context
+  ): Option[Seq[Entry]] = allCatch opt run(sql"""
         SELECT * 
         FROM entry 
         WHERE user_id = ${userId}
         ORDER BY updated_at DESC
-     """.as[Entry]
-    )
+    """.as[Entry]
+  )
 
-  }
-
-  def create(userId: Long, title: String, body: String)(implicit ctx: Context)
-      : Option[Entry] = {
+  def create(userId: Long, title: String, body: String)(implicit
+    ctx: Context
+  ): Option[Entry] = {
     val id = Identifier.generate()
-    val entry: Entry =
-      Entry(id, userId, title, body, MyTime(), MyTime())
-    allCatch opt run(
-      sqlu"""
+    val entry: Entry = Entry(id, userId, title, body, MyTime(), MyTime())
+    allCatch opt run(sqlu"""
           INSERT INTO entry
             (id, user_id, title, body, created_at, updated_at)
             VALUES
@@ -55,23 +50,21 @@ object Entries {
               ${entry.createdAt}, 
               ${entry.updatedAt}
             )
-       """) match {
+      """) match {
       case None => None
       case _ => Some(entry)
     }
   }
 
-  def deleteById(diaryId: Long)(implicit ctx: Context)
-      : Option[Unit] = {
-      allCatch opt {
-        run(
-          sqlu"""
-          DELETE 
-          FROM entry
-          WHERE id = ${diaryId}
-       """)
-        ()
-      }
+  def deleteById(diaryId: Long)(implicit
+    ctx: Context
+  ): Option[Unit] = allCatch opt {
+    run(sqlu"""
+      DELETE 
+      FROM entry
+      WHERE id = ${diaryId}
+    """
+    )
+    ()
   }
 }
-

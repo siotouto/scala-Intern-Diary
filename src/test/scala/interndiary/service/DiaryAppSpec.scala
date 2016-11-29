@@ -8,8 +8,8 @@ import org.joda.time.DateTimeUtils
 class DiaryAppSpec extends UnitSpec with SetupDB {
   private def createApp(): DiaryApp = new DiaryApp(Random.nextInt().toString)
 
-  def mockTime[T](innerMillis: Long)(block: => T): T = {
-    DateTimeUtils.setCurrentMillisFixed(innerMillis)
+  def mockTimeMillisOffset[T](offsetMillis: Long)(block: => T): T = {
+    DateTimeUtils.setCurrentMillisOffset(offsetMillis)
     try {
       block
     } finally {
@@ -17,129 +17,102 @@ class DiaryAppSpec extends UnitSpec with SetupDB {
     }
   }
 
-
+  def hourPerMillis: Long = 3600000L
   describe("DiaryApp") {
     it("should be able to write and read") {
       val app = createApp()
-      app.write("Test title","This is unit test.").fold(
-        { _ => fail() },
-        { entry =>
-          entry.userId shouldBe app.currentUser.id
-          entry.title shouldBe "Test title"
-          entry.body shouldBe "This is unit test."
-        }
+      val Right(entry0) = mockTimeMillisOffset(hourPerMillis*0L)(
+        app.write("Test title","This is unit test.")
       )
-      app.read(app.currentUser.name).fold(
-        { _ => fail() },
-        { entries =>
-          entries.length shouldBe 1
-          entries.head.title shouldBe "Test title"
-          entries.head.body shouldBe "This is unit test."
-        }
+      entry0.userId shouldBe app.currentUser.id
+      entry0.title shouldBe "Test title"
+      entry0.body shouldBe "This is unit test."
+
+      val Right(entries0) = app.read(app.currentUser.name)
+      entries0.length shouldBe 1
+      entries0.head.title shouldBe "Test title"
+      entries0.head.body shouldBe "This is unit test."
+
+      val Right(entry1) = mockTimeMillisOffset(hourPerMillis*1L)(
+        app.write("2nd entry","I won't see bugs anymore.")
       )
-      app.write("2nd entry","I won't see bugs anymore.").fold(
-        { _ => fail() },
-        { entry =>
-          entry.title shouldBe "2nd entry"
-          entry.body shouldBe "I won't see bugs anymore."
-        }
-      )
-      app.read(app.currentUser.name).fold(
-        { _ => fail() },
-        { entries =>
-          entries.length shouldBe 2
-          entries.head.title shouldBe "2nd entry"
-          entries(1).body shouldBe "This is unit test."
-        }
-      )
+      entry1.title shouldBe "2nd entry"
+      entry1.body shouldBe "I won't see bugs anymore."
+
+      val Right(entries1) = app.read(app.currentUser.name)
+      entries1.length shouldBe 2
+      entries1.head.title shouldBe "2nd entry"
+      entries1(1).body shouldBe "This is unit test."
+      entries1 shouldBe Seq(entry1, entry0)
     }
 
     it("should be able to delete") {
       val app = createApp()
-      val entry0 = mockTime(1400000000000L){
-        app.write("Test title","This is unit test.").right.get
+      val Right(entry0) = mockTimeMillisOffset(hourPerMillis*0L){
+        app.write("Test title","This is unit test.")
       }
-      val entry3 = mockTime(1430000000000L){
-        app.write("4th entry","tired.").right.get
+      val Right(entry1) = mockTimeMillisOffset(hourPerMillis*1L){
+        app.write("2nd entry","I won't see bugs anymore.")
       }
-      val entry2 = mockTime(1420000000000L){
-        app.write("3rd entry","I will delete all bugs.").right.get
+      val Right(entry2) = mockTimeMillisOffset(hourPerMillis*2L){
+        app.write("3rd entry","I will delete all bugs.")
       }
-      val entry1 = mockTime(1410000000000L){
-        app.write("2nd entry","I won't see bugs anymore.").right.get
+      val Right(entry3) = mockTimeMillisOffset(hourPerMillis*3L){
+        app.write("4th entry","tired.")
       }
       print(app.read(app.currentUser.name))
-      app.read(app.currentUser.name).fold(
-        { _ => fail() },
-        { entries =>
-          entries.length shouldBe 4
-          entries(0) shouldBe entry3
-          entries(1) shouldBe entry2
-          entries(2) shouldBe entry1
-        }
-      )
+
+      val Right(entries0) = app.read(app.currentUser.name)
+      entries0.length shouldBe 4
+      entries0(0) shouldBe entry3
+      entries0(1) shouldBe entry2
+      entries0(2) shouldBe entry1
+
       app.delete(entry1.id)
-      app.read(app.currentUser.name).fold(
-        { _ => fail() },
-        { entries =>
-          entries.length shouldBe 3
-          entries(0) shouldBe entry3
-          entries(2) shouldBe entry0
-        }
-      )
+      val Right(entries1) = app.read(app.currentUser.name)
+      entries1.length shouldBe 3
+      entries1(0) shouldBe entry3
+      entries1(2) shouldBe entry0
+
       app.delete(entry3.id)
-      app.read(app.currentUser.name).fold(
-        { _ => fail() },
-        { entries =>
-          entries.length shouldBe 2
-          entries(0) shouldBe entry2
-          entries(1) shouldBe entry0
-        }
-      )
+      val Right(entries2) = app.read(app.currentUser.name)
+      entries2.length shouldBe 2
+      entries2(0) shouldBe entry2
+      entries2(1) shouldBe entry0
     }
 
-    it("should be able to delete2") {
+    it("should work when write diaries to DB any order") {
       val app = createApp()
-      val entry3 = mockTime(1430000000000L){
-        app.write("4th entry","tired.").right.get
+      val Right(entry3) = mockTimeMillisOffset(hourPerMillis*3L){
+        app.write("4th entry","tired.")
       }
-      val entry1 = mockTime(1410000000000L){
-        app.write("2nd entry","I won't see bugs anymore.").right.get
+      val Right(entry1) = mockTimeMillisOffset(hourPerMillis*1L){
+        app.write("2nd entry","I won't see bugs anymore.")
       }
-      val entry0 = mockTime(1400000000000L){
-        app.write("3rd entry","I will delete all bugs.").right.get
+      val Right(entry0) = mockTimeMillisOffset(hourPerMillis*0L){
+        app.write("3rd entry","I will delete all bugs.")
       }
-      val entry2 = mockTime(1420000000000L){
-        app.write("Test title","This is unit test.").right.get
+      val Right(entry2) = mockTimeMillisOffset(hourPerMillis*2L){
+        app.write("Test title","This is unit test.")
       }
-      print(app.read(app.currentUser.name))
-      app.read(app.currentUser.name).fold(
-        { _ => fail() },
-        { entries =>
-          entries.length shouldBe 4
-          entries(0) shouldBe entry3
-          entries(1) shouldBe entry2
-          entries(2) shouldBe entry1
-        }
-      )
+
+      val Right(entries0) = app.read(app.currentUser.name)
+      entries0.length shouldBe 4
+      entries0(0) shouldBe entry3
+      entries0(1) shouldBe entry2
+      entries0(2) shouldBe entry1
+
       app.delete(entry1.id)
-      app.read(app.currentUser.name).fold(
-        { _ => fail() },
-        { entries =>
-          entries.length shouldBe 3
-          entries(0) shouldBe entry3
-          entries(2) shouldBe entry0
-        }
-      )
+      val Right(entries1) = app.read(app.currentUser.name)
+      entries1.length shouldBe 3
+      entries1(0) shouldBe entry3
+      entries1(2) shouldBe entry0
+
       app.delete(entry3.id)
-      app.read(app.currentUser.name).fold(
-        { _ => fail() },
-        { entries =>
-          entries.length shouldBe 2
-          entries(0) shouldBe entry2
-          entries(1) shouldBe entry0
-        }
-      )
+      val Right(entries2) = app.read(app.currentUser.name)
+      entries2.length shouldBe 2
+      entries2(0) shouldBe entry2
+      entries2(1) shouldBe entry0
     }
     // comment has been not supported yet.
   }

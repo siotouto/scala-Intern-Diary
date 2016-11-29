@@ -1,21 +1,21 @@
 package interndiary.service
 
-final case object FailToCreateEntryError extends Error {
+final case object FailedToCreateEntryError extends Error {
   override def toString(): String =
     "Fail to create entry. Sorry."
 }
 
-final case object FailToListDiaryError extends Error {
+final case object FailedToListDiaryError extends Error {
   override def toString(): String =
     "Fail to list diary. Sorry."
 }
 
-final case object FailToDeleteError extends Error {
+final case object FailedToDeleteError extends Error {
   override def toString(): String =
     "Fail to delete entry. Sorry."
 }
 
-final case object FailToAddCommentError extends Error {
+final case object FailedToAddCommentError extends Error {
   override def toString(): String =
     "Fail to add your comment. Sorry."
 }

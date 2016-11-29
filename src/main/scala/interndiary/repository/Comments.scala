@@ -13,22 +13,13 @@ object Comments {
   private implicit val getCommentResult =
     GetResult(r => Comment(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
    */
-  def create(entryId: Long, commenterId: Long, body: String)
-    (implicit ctx: Context)
-      : Option[Comment] = {
+  def create(entryId: Long, commenterId: Long, body: String)(implicit
+    ctx: Context
+  ): Option[Comment] = {
     val id = Identifier.generate()
-    val comment =
-      Comment(
-        id,
-        entryId,
-        commenterId,
-        body,
-        MyTime(),
-        MyTime()
-      )
+    val comment = Comment(id, entryId, commenterId, body, MyTime(), MyTime())
     for {
-      _ <- allCatch opt run(
-        sqlu"""
+      _ <- allCatch opt run(sqlu"""
           INSERT INTO comment
             (id, entry_id, commenter_id, body, created_at, updated_at)
             VALUES
