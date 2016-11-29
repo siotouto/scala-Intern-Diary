@@ -3,9 +3,20 @@ package interndiary.service
 import interndiary.helper._
 
 import scala.util.Random
+import org.joda.time.DateTimeUtils
 
 class DiaryAppSpec extends UnitSpec with SetupDB {
   private def createApp(): DiaryApp = new DiaryApp(Random.nextInt().toString)
+
+  def mockTime[T](innerMillis: Long)(block: => T): T = {
+    DateTimeUtils.setCurrentMillisFixed(innerMillis)
+    try {
+      block
+    } finally {
+      DateTimeUtils.setCurrentMillisSystem()
+    }
+  }
+
 
   describe("DiaryApp") {
     it("should be able to write and read") {
@@ -45,10 +56,18 @@ class DiaryAppSpec extends UnitSpec with SetupDB {
 
     it("should be able to delete") {
       val app = createApp()
-      val entry0 = app.write("Test title","This is unit test.").right.get
-      val entry1 = app.write("2nd entry","I won't see bugs anymore.").right.get
-      val entry2 = app.write("3rd entry","I will delete all bugs.").right.get
-      val entry3 = app.write("4th entry","tired.").right.get
+      val entry0 = mockTime(1400000000000L){
+        app.write("Test title","This is unit test.").right.get
+      }
+      val entry3 = mockTime(1430000000000L){
+        app.write("4th entry","tired.").right.get
+      }
+      val entry2 = mockTime(1420000000000L){
+        app.write("3rd entry","I will delete all bugs.").right.get
+      }
+      val entry1 = mockTime(1410000000000L){
+        app.write("2nd entry","I won't see bugs anymore.").right.get
+      }
       print(app.read(app.currentUser.name))
       app.read(app.currentUser.name).fold(
         { _ => fail() },
@@ -78,5 +97,6 @@ class DiaryAppSpec extends UnitSpec with SetupDB {
         }
       )
     }
+    // comment has been not supported yet.
   }
 }
