@@ -41,7 +41,7 @@ object Entries {
       : Option[Entry] = {
     val id = Identifier.generate()
     val entry: Entry =
-      Entry(id, userId, title, body, MyTime.create(), MyTime.create())
+      Entry(id, userId, title, body, MyTime(), MyTime())
     allCatch opt run(
       sqlu"""
           INSERT INTO entry

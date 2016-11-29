@@ -2,7 +2,6 @@ package interndiary.repository
 
 import interndiary.model.User
 import scala.concurrent.ExecutionContext.Implicits.global
-import org.joda.time.LocalDateTime
 import com.github.tarao.slickjdbc.interpolation.SQLInterpolation._
 import com.github.tarao.slickjdbc.interpolation.CompoundParameter._
 import slick.jdbc.GetResult
@@ -26,7 +25,7 @@ object Users {
   def createByName(userName: String)(implicit ctx: Context)
       : User = {
     val id: Long = Identifier.generate()
-    val user: User = User(id, userName, MyTime.create(), MyTime.create())
+    val user: User = User(id, userName, MyTime(), MyTime())
     run(
       sqlu"""
         INSERT INTO user

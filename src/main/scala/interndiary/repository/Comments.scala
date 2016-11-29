@@ -23,8 +23,8 @@ object Comments {
         entryId,
         commenterId,
         body,
-        MyTime.create(),
-        MyTime.create()
+        MyTime(),
+        MyTime()
       )
     for {
       _ <- allCatch opt run(

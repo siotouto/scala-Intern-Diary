@@ -1,9 +1,9 @@
 package interndiary.repository
 
 import org.joda.time.LocalDateTime
-import org.joda.time.LocalDateTime.Property
 
 object MyTime {
-  def create(): LocalDateTime =
+  def apply(): LocalDateTime = floorSecond()
+  def floorSecond(): LocalDateTime =
     new LocalDateTime().secondOfMinute().roundFloorCopy()
 }
