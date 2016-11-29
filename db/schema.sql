@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS user
+DROP TABLE IF EXISTS user;
 CREATE TABLE user (
        `id` BIGINT UNSIGNED NOT NULL,
 
@@ -14,7 +14,7 @@ CREATE TABLE user (
        KEY (updated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-DROP TABLE IF EXISTS entry
+DROP TABLE IF EXISTS entry;
 CREATE TABLE entry (
        `id` BIGINT UNSIGNED NOT NULL,
 
@@ -31,7 +31,7 @@ CREATE TABLE entry (
        KEY (user_id, updated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-DROP TABLE IF EXISTS comment
+DROP TABLE IF EXISTS comment;
 CREATE TABLE comment (
        `id` BIGINT UNSIGNED NOT NULL,
 
