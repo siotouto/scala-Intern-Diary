@@ -8,7 +8,7 @@ class DiaryAppSpec extends UnitSpec with SetupDB {
   private def createApp(): DiaryApp = new DiaryApp(Random.nextInt().toString)
 
   describe("DiaryApp") {
-    it("should able to write and read") {
+    it("should be able to write and read") {
       val app = createApp()
       app.write("Test title","This is unit test.").fold(
         { _ => fail() },
@@ -43,19 +43,20 @@ class DiaryAppSpec extends UnitSpec with SetupDB {
       )
     }
 
-    it("should able to write and read and delete") {
+    it("should be able to delete") {
       val app = createApp()
       val entry0 = app.write("Test title","This is unit test.").right.get
       val entry1 = app.write("2nd entry","I won't see bugs anymore.").right.get
       val entry2 = app.write("3rd entry","I will delete all bugs.").right.get
       val entry3 = app.write("4th entry","tired.").right.get
+      print(app.read(app.currentUser.name))
       app.read(app.currentUser.name).fold(
         { _ => fail() },
         { entries =>
           entries.length shouldBe 4
-          entries.head.title shouldBe "4th entry"
-          entries(2).body shouldBe "I won't see bugs anymore."
+          entries(0) shouldBe entry3
           entries(1) shouldBe entry2
+          entries(2) shouldBe entry1
         }
       )
       app.delete(entry1.id)
@@ -63,8 +64,8 @@ class DiaryAppSpec extends UnitSpec with SetupDB {
         { _ => fail() },
         { entries =>
           entries.length shouldBe 3
-          entries.head.title shouldBe "4th entry"
-          entries(2).body shouldBe "This is unit test."
+          entries(0) shouldBe entry3
+          entries(2) shouldBe entry0
         }
       )
       app.delete(entry3.id)
@@ -72,8 +73,7 @@ class DiaryAppSpec extends UnitSpec with SetupDB {
         { _ => fail() },
         { entries =>
           entries.length shouldBe 2
-          entries.head.title shouldBe "3rd entry"
-          entries(1).body shouldBe "This is unit test."
+          entries(0) shouldBe entry2
           entries(1) shouldBe entry0
         }
       )

@@ -26,7 +26,7 @@ object Users {
   def createByName(userName: String)(implicit ctx: Context)
       : User = {
     val id: Long = Identifier.generate()
-    val user: User = User(id, userName, new LocalDateTime(), new LocalDateTime())
+    val user: User = User(id, userName, MyTime.create(), MyTime.create())
     run(
       sqlu"""
         INSERT INTO user

@@ -2,7 +2,6 @@ package interndiary.repository
 
 import interndiary.model.Entry
 import scala.concurrent.ExecutionContext.Implicits.global
-import org.joda.time.LocalDateTime
 import com.github.tarao.slickjdbc.interpolation.SQLInterpolation._
 import com.github.tarao.slickjdbc.interpolation.CompoundParameter._
 import slick.jdbc.GetResult
@@ -42,7 +41,7 @@ object Entries {
       : Option[Entry] = {
     val id = Identifier.generate()
     val entry: Entry =
-      Entry(id, userId, title, body, new LocalDateTime(), new LocalDateTime())
+      Entry(id, userId, title, body, MyTime.create(), MyTime.create())
     allCatch opt run(
       sqlu"""
           INSERT INTO entry

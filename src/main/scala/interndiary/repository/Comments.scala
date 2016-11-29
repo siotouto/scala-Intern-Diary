@@ -1,7 +1,6 @@
 package interndiary.repository
 
 import interndiary.model.Comment
-import org.joda.time.LocalDateTime
 import com.github.tarao.slickjdbc.interpolation.SQLInterpolation._
 import com.github.tarao.slickjdbc.interpolation.CompoundParameter._
 //import slick.jdbc.GetResult
@@ -24,8 +23,8 @@ object Comments {
         entryId,
         commenterId,
         body,
-        new LocalDateTime(),
-        new LocalDateTime()
+        MyTime.create(),
+        MyTime.create()
       )
     for {
       _ <- allCatch opt run(
