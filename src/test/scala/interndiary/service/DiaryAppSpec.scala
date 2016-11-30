@@ -17,14 +17,14 @@ class DiaryAppSpec extends UnitSpec with SetupDB {
     }
   }
 
-  def hourPerMillis: Long = 3600000L
+  def millisPerHour: Long = 3600000L
   describe("DiaryApp") {
     it("should be able to write and read") {
       val app: DiaryApp = createApp()
       val nowMillis: Long = DateTime.now().getMillis()
-      val testTime: Seq[Long] = (0L until 10L).map(nowMillis + hourPerMillis * _)
+      val testTime: Seq[Long] = (0L until 10L).map(nowMillis + millisPerHour * _)
       val Right(entry0) = mockTimeMillisFixed(testTime(0))(
-        app.write("Test title","This is unit test.")
+        app.write("Test title", "This is unit test.")
       )
       entry0.userId shouldBe app.currentUser.id
       entry0.title shouldBe "Test title"
@@ -36,7 +36,7 @@ class DiaryAppSpec extends UnitSpec with SetupDB {
       entries0.head.body shouldBe "This is unit test."
 
       val Right(entry1) = mockTimeMillisFixed(testTime(1))(
-        app.write("2nd entry","I won't see bugs anymore.")
+        app.write("2nd entry", "I won't see bugs anymore.")
       )
       entry1.title shouldBe "2nd entry"
       entry1.body shouldBe "I won't see bugs anymore."
@@ -51,18 +51,18 @@ class DiaryAppSpec extends UnitSpec with SetupDB {
     it("should be able to delete") {
       val app: DiaryApp = createApp()
       val nowMillis: Long = DateTime.now().getMillis()
-      val testTime: Seq[Long] = (0L until 10L).map(nowMillis + hourPerMillis * _)
+      val testTime: Seq[Long] = (0L until 10L).map(nowMillis + millisPerHour * _)
       val Right(entry0) = mockTimeMillisFixed(testTime(0)){
-        app.write("Test title","This is unit test.")
+        app.write("Test title", "This is unit test.")
       }
       val Right(entry1) = mockTimeMillisFixed(testTime(1)){
-        app.write("2nd entry","I won't see bugs anymore.")
+        app.write("2nd entry", "I won't see bugs anymore.")
       }
       val Right(entry2) = mockTimeMillisFixed(testTime(2)){
-        app.write("3rd entry","I will delete all bugs.")
+        app.write("3rd entry", "I will delete all bugs.")
       }
       val Right(entry3) = mockTimeMillisFixed(testTime(3)){
-        app.write("4th entry","tired.")
+        app.write("4th entry", "tired.")
       }
       print(app.read(app.currentUser.name))
 
@@ -88,18 +88,18 @@ class DiaryAppSpec extends UnitSpec with SetupDB {
     it("should work when write diaries to DB any order") {
       val app: DiaryApp = createApp()
       val nowMillis: Long = DateTime.now().getMillis()
-      val testTime: Seq[Long] = (0L until 10L).map(nowMillis + hourPerMillis * _)
+      val testTime: Seq[Long] = (0L until 10L).map(nowMillis + millisPerHour * _)
       val Right(entry3) = mockTimeMillisFixed(testTime(3)){
-        app.write("4th entry","tired.")
+        app.write("4th entry", "tired.")
       }
       val Right(entry1) = mockTimeMillisFixed(testTime(1)){
-        app.write("2nd entry","I won't see bugs anymore.")
+        app.write("2nd entry", "I won't see bugs anymore.")
       }
       val Right(entry0) = mockTimeMillisFixed(testTime(0)){
-        app.write("3rd entry","I will delete all bugs.")
+        app.write("3rd entry", "I will delete all bugs.")
       }
       val Right(entry2) = mockTimeMillisFixed(testTime(2)){
-        app.write("Test title","This is unit test.")
+        app.write("Test title", "This is unit test.")
       }
 
       val Right(entries0) = app.read(app.currentUser.name)
