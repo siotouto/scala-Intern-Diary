@@ -1,6 +1,6 @@
 package interndiary.service
 
-import interndiary.model.{Entry, User}
+import interndiary.model.{Entry, User, Comment}
 import interndiary.repository
 
 class DiaryApp(currentUserName: String) {
@@ -13,8 +13,7 @@ class DiaryApp(currentUserName: String) {
     ctx: Context
   ): Either[Error, Entry] =
     repository.Entries.create(currentUser.id, title, body)
-      .toRight(FailedToCreateEntryError)
-
+      .toRight(FailedToEditEntryError)
 
   def read(user: String)(implicit
     ctx: Context
@@ -29,6 +28,29 @@ class DiaryApp(currentUserName: String) {
     }
   } yield entries
 
+  def find(entryId: Long)(implicit
+    ctx: Context
+  ): Either[Error, Tuple2[Entry, Seq[Comment]]] = for {
+    entry <- repository.Entries.findById(entryId).toRight(EntryNotFoundError).right
+    comments <- repository.Comments.listByEntry(entryId).toRight(FailedToGetCommentsError).right
+  } yield (entry, comments)
+
+  def update(entryId: Long, title: String, body: String)(implicit
+      ctx: Context
+  ): Either[Error, Entry] = for {
+    entry <- {
+      repository.Entries.findById(entryId)
+        .toRight(EntryNotFoundError).right
+    }
+    _ <- {
+      if(entry.userId != currentUser.id)
+        Left(UnauthorizedError).right
+      else
+        repository.Entries.updateEntry(entry.id, title, body)
+          .toRight(FailedToEditEntryError).right
+    }
+  } yield entry
+
   def delete(entryId: Long)(implicit
     ctx: Context
   ): Either[Error, Entry] = for {
@@ -38,7 +60,7 @@ class DiaryApp(currentUserName: String) {
     }
     _ <- {
       if(entry.userId != currentUser.id)
-        Left(UnauthorizedToDeleteError).right
+        Left(UnauthorizedError).right
       else
         repository.Entries.deleteById(entry.id)
           .toRight(FailedToDeleteError).right

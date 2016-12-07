@@ -1,0 +1,24 @@
+@(userName: String, entries: Seq[interndiary.model.Entry], mine: Boolean)
+@wrapper(userName + "'s diary"){
+@if(mine){
+<a href="/diary/user/my/write">Write new entry</a>
+} else {
+}
+@for(entry <- entries) {
+	      <h3>
+		<a href="/diary/entry/@entry.id">
+		  <div>
+		    @entry.title
+		  </div>
+		</a>
+	      </h3>
+<p>
+  @entry.body
+</p>
+<p style="text-align: right; 
+	  border-top: 1px dashed #0077cc;
+	  border-bottom: 3px solid #0077cc;">
+  @entry.createdAt.toString
+</p>
+}
+}
