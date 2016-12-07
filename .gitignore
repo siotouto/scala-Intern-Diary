@@ -1,6 +1,10 @@
 *.class
 *.log
 
+# ensime specific
+.ensime
+.ensime_cache/
+
 # sbt specific
 .cache
 .history
@@ -15,3 +19,7 @@ project/plugins/project/
 .idea/
 /data
 /data-test
+
+# emacs specific
+*~
+
