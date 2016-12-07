@@ -6,7 +6,6 @@ import com.github.tarao.slickjdbc.interpolation.SQLInterpolation._
 import com.github.tarao.slickjdbc.interpolation.CompoundParameter._
 import slick.jdbc.GetResult
 import com.github.tototoshi.slick.MySQLJodaSupport._
-import org.joda.time.LocalDateTime
 
 import scala.util.control.Exception.allCatch
 
@@ -39,7 +38,7 @@ object Entries {
   ): Option[Entry] = {
     val id = Identifier.generate()
     val entry: Entry = Entry(id, userId, title, body, MyTime(), MyTime())
-    (allCatch opt run(sqlu"""
+    allCatch opt run(sqlu"""
           INSERT INTO entry
             (id, user_id, title, body, created_at, updated_at)
             VALUES
@@ -51,34 +50,19 @@ object Entries {
               ${entry.createdAt}, 
               ${entry.updatedAt}
             )
-      """)).map(_ => entry)
-  }
-
-  def updateEntry(entryId: Long, title: String, body: String)(implicit
-    ctx: Context
-  ): Option[Entry] = {
-    val updateTime: LocalDateTime = MyTime()
-    allCatch opt {
-      run(sqlu"""
-          UPDATE entry
-          SET 
-            title = ${title},
-            body = ${body},
-            updated_at = ${updateTime}
-          WHERE
-            id = ${entryId}
-      """)
-      findById(entryId).get
+      """) match {
+      case None => None
+      case _ => Some(entry)
     }
   }
 
-  def deleteById(entryId: Long)(implicit
+  def deleteById(diaryId: Long)(implicit
     ctx: Context
   ): Option[Unit] = allCatch opt {
     run(sqlu"""
       DELETE 
       FROM entry
-      WHERE id = ${entryId}
+      WHERE id = ${diaryId}
     """
     )
     ()

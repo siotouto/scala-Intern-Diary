@@ -1,8 +1,8 @@
 package interndiary.service
 
-final case object FailedToEditEntryError extends Error {
+final case object FailedToCreateEntryError extends Error {
   override def toString(): String =
-    "Failed to edit entry. Sorry."
+    "Failed to create entry. Sorry."
 }
 
 final case object FailedToListDiaryError extends Error {
@@ -20,11 +20,6 @@ final case object FailedToAddCommentError extends Error {
     "Failed to add your comment. Sorry."
 }
 
-final case object FailedToGetCommentsError extends Error {
-  override def toString(): String =
-    "Failed to get entry's comments. Sorry."
-}
-
 final case object UserNotFoundError extends Error {
   override def toString(): String =
     "Can not find a target user."
@@ -35,8 +30,8 @@ final case object EntryNotFoundError extends Error {
     "Can not find a target entry."
 }
 
-final case object UnauthorizedError extends Error {
+final case object UnauthorizedToDeleteError extends Error {
   override def toString(): String =
-    "Only author can edit/delete and you can't."
+    "Only author can delete and you can't."
 }
 

@@ -3,14 +3,16 @@ package interndiary.repository
 import interndiary.model.Comment
 import com.github.tarao.slickjdbc.interpolation.SQLInterpolation._
 import com.github.tarao.slickjdbc.interpolation.CompoundParameter._
-import slick.jdbc.GetResult
+//import slick.jdbc.GetResult
 import com.github.tototoshi.slick.MySQLJodaSupport._
 
 import scala.util.control.Exception.allCatch
 
 object Comments {
+  /*
   private implicit val getCommentResult =
     GetResult(r => Comment(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
+   */
   def create(entryId: Long, commenterId: Long, body: String)(implicit
     ctx: Context
   ): Option[Comment] = {
@@ -32,14 +34,4 @@ object Comments {
        """)
     } yield comment
   }
-
-  def listByEntry(entryId: Long)(implicit
-    ctx: Context
-  ): Option[Seq[Comment]] = allCatch opt run(sql"""
-      SELECT *
-      FROM comment
-      WHERE entry_id = ${entryId}
-      ORDER BY updated_at ASC
-    """.as[Comment]
-  )
 }
