@@ -3,6 +3,7 @@ package interndiary.web
 import interndiary.service.{Context, DiaryApp}
 import org.scalatra._
 import scala.util.control.Exception.allCatch
+//import scala.util.Either.RightProjection
 
 class DiaryWeb extends DiaryWebStack {
 
@@ -16,30 +17,37 @@ class DiaryWeb extends DiaryWebStack {
   def createApp(): DiaryApp =
     new DiaryApp(currentUserName())
 
+  def tryToGetEither(field: String): Either[Any, String] =
+    params.get(field).toRight(BadRequest())
+
+  def requestToLongEither(longStr: String): Either[Any, Long] =
+    (allCatch opt longStr.toLong).toRight(BadRequest())
+
   get("/") {
     Found("/diary")
   }
 
   get("/diary") {
-    Found("/diary/user/my")
+    Found("/diary/my")
   }
 
   get("/diary/user/:user") {
     val app = createApp()
-    val mine: Boolean = false
-    if(Some(currentUserName) == params.get("user"))
-      Found("/diary/user/my")
-    else
+    if(Right(currentUserName) == tryToGetEither("user"))
+      Found("/diary/my")
+    else{
+      val mine: Boolean = false
       (for {
-        rUserName <- params.get("user").toRight(BadRequest()).right
+        rUserName <- tryToGetEither("user").right
         rEntries <- app.read(rUserName).right
       } yield (rUserName, rEntries)) match {
         case Right((userName, entries)) => interndiary.html.read(userName, entries, mine)
         case Left(error) => error
       }
+    }
   }
 
-  get("/diary/user/my") {
+  get("/diary/my") {
     val app = createApp()
     val mine: Boolean = true
       (for {
@@ -51,25 +59,25 @@ class DiaryWeb extends DiaryWebStack {
   }
 
   get("/diary/write") {
-    Found("/diary/user/my/write")
+    Found("/diary/my/write")
   }
 
-  get("/diary/user/my/write") {
+  get("/diary/my/write") {
     interndiary.html.write(currentUserName)
   }
 
-  post("/diary/user/my/write") {
+  post("/diary/my/write") {
     val app = createApp()
     (for {
-      rawTitle <- params.get("title").toRight(BadRequest()).right
+      rawTitle <- tryToGetEither("title").right
       title <- (rawTitle.trim match {
         case "" => Left(EmptyTitleEntryError)
         case _ => Right(rawTitle)
       }).right
-      body <- params.get("body").toRight(BadRequest()).right
+      body <- tryToGetEither("body").right
       rEntry <- app.write(title, body).right
     } yield rEntry) match {
-      case Right(entry) => Found("/diary/user/my")
+      case Right(entry) => Found("/diary/my")
       case Left(error) => error
     }
   }
@@ -77,8 +85,8 @@ class DiaryWeb extends DiaryWebStack {
   get("/diary/entry/:id") {
     val app = createApp()
       (for {
-        rawId <- params.get("id").toRight(BadRequest()).right
-        id <- (allCatch either rawId.toLong).left.map(_ => BadRequest()).right
+        rawId <- tryToGetEither("id").right
+        id <- requestToLongEither(rawId).right
         rCommentedEntry <- app.find(id).right
       } yield rCommentedEntry) match {
       case Right((entry, comments)) => interndiary.html.find(entry, comments)
@@ -90,8 +98,8 @@ class DiaryWeb extends DiaryWebStack {
     val app = createApp()
       (for {
         //
-        rawId <- params.get("id").toRight(BadRequest()).right
-        id <- (allCatch either rawId.toLong).left.map(_ => BadRequest()).right
+        rawId <- tryToGetEither("id").right
+        id <- requestToLongEither(rawId).right
         rEntry <- app.find(id).right
       } yield rEntry) match {
       case Right((entry, comments)) => interndiary.html.edit(entry)
@@ -103,14 +111,14 @@ class DiaryWeb extends DiaryWebStack {
     val app = createApp()
       (for {
         //
-        rawId <- params.get("id").toRight(BadRequest()).right
-        id <- (allCatch either rawId.toLong).left.map(_ => BadRequest()).right
-        rawTitle <- params.get("title").toRight(BadRequest()).right
+        rawId <- tryToGetEither("id").right
+        id <- requestToLongEither(rawId).right
+        rawTitle <- tryToGetEither("title").right
         title <- (rawTitle.trim match {
           case "" => Left(EmptyTitleEntryError)
           case _ => Right(rawTitle)
         }).right
-        body <- params.get("body").toRight(BadRequest()).right
+        body <- tryToGetEither("body").right
         rEntry <- app.update(id, title, body).right
       } yield rEntry) match {
       case Right(entry) => Found("/diary")
@@ -121,8 +129,8 @@ class DiaryWeb extends DiaryWebStack {
   get("/diary/entry/:id/delete") {
     val app = createApp()
       (for {
-        rawId <- params.get("id").toRight(BadRequest()).right
-        id <- (allCatch either rawId.toLong).left.map(_ => BadRequest()).right
+        rawId <- tryToGetEither("id").right
+        id <- requestToLongEither(rawId).right
         rEntry <- app.find(id).right
       } yield rEntry) match {
       case Right((entry, comments)) => interndiary.html.delete(entry)
@@ -133,8 +141,8 @@ class DiaryWeb extends DiaryWebStack {
   post("/diary/entry/:id/delete") {
     val app = createApp()
       (for {
-        rawId <- params.get("id").toRight(BadRequest()).right
-        id <- (allCatch either rawId.toLong).left.map(_ => BadRequest()).right
+        rawId <- tryToGetEither("id").right
+        id <- requestToLongEither(rawId).right
         rEntry <- app.delete(id).right
       } yield rEntry) match {
       case Right(entry) => Found("/diary")
