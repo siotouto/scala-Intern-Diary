@@ -30,7 +30,7 @@ object Entries {
         SELECT * 
         FROM entry 
         WHERE user_id = ${userId}
-        ORDER BY updated_at DESC
+        ORDER BY created_at DESC
     """.as[Entry]
   )
 
