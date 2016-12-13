@@ -1,12 +1,12 @@
-@(userName: String, entries: Seq[interndiary.model.Entry], mine: Boolean)
+@(userName: String, entries: Seq[interndiary.model.Entry], authorized: Boolean)
 @wrapper(userName + "'s diary"){
-@if(mine){
-<a href="/diary/user/my/write">Write new entry</a>
+@if(authorized){
+<a href="/my/write">Write new entry</a>
 } else {
 }
 @for(entry <- entries) {
 	      <h3>
-		<a href="/diary/entry/@entry.id">
+		<a href="entry/@entry.id/">
 		  <div>
 		    <span>
 		      *
@@ -17,6 +17,12 @@
 		  </div>
 		</a>
 	      </h3>
+	      @if(authorized){
+	      <a href="entry/@entry.id/edit">
+		edit
+	      </a>
+	      } else {
+	      }
 <p>
   @entry.body
 </p>

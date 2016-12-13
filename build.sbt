@@ -40,6 +40,7 @@ lazy val interndiary = (project in file(".")).
       "-feature",
       "-Xlint",
       "-Xlint:-missing-interpolator",
+      "-Xmax-classfile-name", "140",
       "-Ywarn-dead-code",
       "-Ywarn-numeric-widen",
       "-Ywarn-unused",

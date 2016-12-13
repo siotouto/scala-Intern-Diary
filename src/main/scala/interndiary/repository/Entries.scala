@@ -1,6 +1,6 @@
 package interndiary.repository
 
-import interndiary.model.Entry
+import interndiary.model.{User, Entry}
 import scala.concurrent.ExecutionContext.Implicits.global
 import com.github.tarao.slickjdbc.interpolation.SQLInterpolation._
 import com.github.tarao.slickjdbc.interpolation.CompoundParameter._
@@ -14,22 +14,34 @@ object Entries {
   private implicit val getEntryResult =
     GetResult(r => Entry(r.<<, r.<<, r.<<, r.<<, r.<<, r.<<))
 
-  def findById(entryId: Long)(implicit
+  def findByUserAndEntryId(user:User, entryId: Long)(implicit
     ctx: Context
   ): Option[Entry] = run(sql"""
         SELECT * 
         FROM entry 
         WHERE id = ${entryId} 
+        AND user_id = ${user.id}
         LIMIT 1
     """.as[Entry].map(_.headOption)
   )
 
-  def listByUserId(userId: Long)(implicit
+  private def findByUserIdAndEntryId(userId:Long, entryId: Long)(implicit
+    ctx: Context
+  ): Option[Entry] = run(sql"""
+        SELECT * 
+        FROM entry 
+        WHERE id = ${entryId} 
+        AND user_id = ${userId}
+        LIMIT 1
+    """.as[Entry].map(_.headOption)
+  )
+
+  def listByUser(user: User)(implicit
     ctx: Context
   ): Option[Seq[Entry]] = allCatch opt run(sql"""
         SELECT * 
         FROM entry 
-        WHERE user_id = ${userId}
+        WHERE user_id = ${user.id}
         ORDER BY created_at DESC
     """.as[Entry]
   )
@@ -54,7 +66,7 @@ object Entries {
       """)).map(_ => entry)
   }
 
-  def updateEntry(entryId: Long, title: String, body: String)(implicit
+  def updateEntry(entry: Entry, title: String, body: String)(implicit
     ctx: Context
   ): Option[Entry] = {
     val updateTime: LocalDateTime = MyTime()
@@ -66,19 +78,22 @@ object Entries {
             body = ${body},
             updated_at = ${updateTime}
           WHERE
-            id = ${entryId}
+            id = ${entry.id}
+          AND
+            user_id = ${entry.userId}
       """)
-      findById(entryId).get
+      findByUserIdAndEntryId(entry.userId, entry.id).get
     }
   }
 
-  def deleteById(entryId: Long)(implicit
+  def delete(entry: Entry)(implicit
     ctx: Context
   ): Option[Unit] = allCatch opt {
     run(sqlu"""
       DELETE 
       FROM entry
-      WHERE id = ${entryId}
+      WHERE id = ${entry.id}
+      AND user_id =${entry.userId}
     """
     )
     ()

@@ -24,128 +24,118 @@ class DiaryWeb extends DiaryWebStack {
     (allCatch opt longStr.toLong).toRight(left)
 
   get("/") {
-    Found("/diary")
+    Found(s"/user/${currentUserName}/")
   }
 
-  get("/diary") {
-    Found("/diary/my")
-  }
-
-  get("/diary/user/:user") {
+  get("/user/:userName/") {
     val app = createApp()
-    if(getEither("user")(BadRequest()) == Right(currentUserName))
-      Found("/diary/my")
-    else {
-      val mine: Boolean = false
-        (for {
-          rUserName <- getEither("user")(BadRequest()).right
-          rEntries <- app.read(rUserName).right
-        } yield (rUserName, rEntries)) match {
-        case Right((userName, entries)) => interndiary.html.read(userName, entries, mine)
-        case Left(error) => error
+
+    (for {
+      userName <- getEither("userName")(BadRequest()).right
+      entries <- app.read(userName).right
+    } yield (userName, entries)) match {
+      case Right((userName, entries)) => {
+        val authorized: Boolean = app.isAuthorName(userName)
+        interndiary.html.read(userName, entries, authorized)
       }
-    }
-  }
-
-  get("/diary/my") {
-    val app = createApp()
-    val mine: Boolean = true
-      (for {
-        rEntries <- app.read(currentUserName).right
-      } yield rEntries) match {
-      case Right(entries) => interndiary.html.read(currentUserName, entries, mine)
       case Left(error) => error
     }
   }
 
-  get("/diary/write") {
-    Found("/diary/my/write")
-  }
-
-  get("/diary/my/write") {
+  get("/my/write") {
     interndiary.html.write(currentUserName)
   }
 
-  post("/diary/my/write") {
+  post("/my/write") {
     val app = createApp()
-      (for {
-        rawTitle <- getEither("title")(BadRequest()).right
-        title <- (rawTitle.trim match {
-          case "" => Left(EmptyTitleEntryError)
-          case _ => Right(rawTitle)
-        }).right
-        body <- getEither("body")(BadRequest()).right
-        rEntry <- app.write(title, body).right
-      } yield rEntry) match {
-      case Right(entry) => Found("/diary/my")
+
+    (for {
+      rawTitle <- getEither("title")(BadRequest()).right
+      title <- (rawTitle.trim match {
+        case "" => Left(EmptyTitleEntryError)
+        case _ => Right(rawTitle)
+      }).right
+      body <- getEither("body")(BadRequest()).right
+      entry <- app.write(title, body).right
+    } yield entry) match {
+      case Right(entry) => Found("/")
       case Left(error) => error
     }
   }
 
-  get("/diary/user/:user/:id") {
+  get("/user/:userName/entry/:entryId/") {
     val app = createApp()
-      (for {
-        rawId <- getEither("id")(BadRequest()).right
-        id <- toLongEither(rawId)(BadRequest()).right
-        rCommentedEntry <- app.find(id).right
-      } yield rCommentedEntry) match {
+
+    (for {
+      userName <- getEither("userName")(BadRequest()).right
+      rawEntryId <- getEither("entryId")(BadRequest()).right
+      entryId <- toLongEither(rawEntryId)(BadRequest()).right
+      commentedEntry <- app.find(userName, entryId).right
+    } yield commentedEntry) match {
       case Right((entry, comments)) => interndiary.html.find(entry, comments)
       case Left(error) => error
     }
   }
 
-  get("/diary/user/:user/:id/edit") {
+  get("/user/:userName/entry/:entryId/edit") {
     val app = createApp()
-      (for {
-        //
-        rawId <- getEither("id")(BadRequest()).right
-        id <- toLongEither(rawId)(BadRequest()).right
-        rEntry <- app.find(id).right
-      } yield rEntry) match {
+
+    (for {
+      userName <- getEither("userName")(BadRequest()).right
+      rawEntryId <- getEither("entryId")(BadRequest()).right
+      entryId <- toLongEither(rawEntryId)(BadRequest()).right
+      commentedEntry <- app.find(userName, entryId).right
+    } yield commentedEntry) match {
       case Right((entry, comments)) => interndiary.html.edit(entry)
       case Left(error) => error
     }
   }
 
-  post("/diary/user/:user/:id/edit") {
+  post("/user/:userName/entry/:entryId/edit") {
     val app = createApp()
-      (for {
-        //
-        rawId <- getEither("id")(BadRequest()).right
-        id <- toLongEither(rawId)(BadRequest()).right
-        rawTitle <- getEither("title")(BadRequest()).right
-        title <- (rawTitle.trim match {
-          case "" => Left(EmptyTitleEntryError)
-          case _ => Right(rawTitle)
-        }).right
-        body <- getEither("body")(BadRequest()).right
-        rEntry <- app.update(id, title, body).right
-      } yield rEntry) match {
-      case Right(entry) => Found("/diary")
+
+    (for {
+      userName <- getEither("userName")(BadRequest()).right
+      rawEntryId <- getEither("entryId")(BadRequest()).right
+      entryId <- toLongEither(rawEntryId)(BadRequest()).right
+      _ <- app.find(userName, entryId).right
+      rawTitle <- getEither("title")(BadRequest()).right
+      title <- (rawTitle.trim match {
+        case "" => Left(EmptyTitleEntryError)
+        case _ => Right(rawTitle)
+      }).right
+      body <- getEither("body")(BadRequest()).right
+      newEntry <- app.update(userName, entryId, title, body).right
+    } yield newEntry) match {
+      case Right(entry) => Found("./")
       case Left(error) => error
     }
   }
 
-  get("/diary/user/:user/:id/delete") {
+  get("/user/:userName/entry/:entryId/delete") {
     val app = createApp()
-      (for {
-        rawId <- getEither("id")(BadRequest()).right
-        id <- toLongEither(rawId)(BadRequest()).right
-        rEntry <- app.find(id).right
-      } yield rEntry) match {
+
+    (for {
+      userName <- getEither("userName")(BadRequest()).right
+      rawEntryId <- getEither("entryId")(BadRequest()).right
+      entryId <- toLongEither(rawEntryId)(BadRequest()).right
+      commentedEntry <- app.find(userName, entryId).right
+    } yield commentedEntry) match {
       case Right((entry, comments)) => interndiary.html.delete(entry)
       case Left(error) => error
     }
   }
 
-  post("/diary/user/:user/:id/delete") {
+  post("/user/:userName/entry/:entryId/delete") {
     val app = createApp()
-      (for {
-        rawId <- getEither("id")(BadRequest()).right
-        id <- toLongEither(rawId)(BadRequest()).right
-        rEntry <- app.delete(id).right
-      } yield rEntry) match {
-      case Right(entry) => Found("/diary")
+
+    (for {
+      userName <- getEither("userName")(BadRequest()).right
+      rawEntryId <- getEither("entryId")(BadRequest()).right
+      entryId <- toLongEither(rawEntryId)(BadRequest()).right
+      commentedEntry <- app.delete(userName, entryId).right
+    } yield commentedEntry) match {
+      case Right(entry) => Found("/")
       case Left(error) => error
     }
   }

@@ -10,9 +10,9 @@
 </p>
 <ul>
   @for(comment <- comments) {
-		  <li> @comment.commenterId : @comment.body , @comment.createdAt.toString <a href="/diary/comment/delete/@comment.id">delete</a></li>
+		  <li> @comment.commenterId : @comment.body , @comment.createdAt.toString <a href="./comment/delete/@comment.id">delete</a></li>
 		}
 </ul>
-<a href="/diary/entry/@entry.id/edit">Edit Entry</a>
-<a href="/diary/entry/@entry.id/delete">Delete Entry</a>
+<a href="./edit">Edit Entry</a>
+<a href="./delete">Delete Entry</a>
 }

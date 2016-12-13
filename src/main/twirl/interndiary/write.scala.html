@@ -1,6 +1,6 @@
 @(userName: String)
 @wrapper("Write Entry: " + userName + "'s diary"){
-<form action="/diary/user/my/write" method="POST">
+<form action="write" method="POST">
   <dl>
     <dt><label for="title">Title:</label></dt><dd><input type="text" name="title" size="80" value=""/></dd>
     <dt><label for="body">Body:</label></dt>
