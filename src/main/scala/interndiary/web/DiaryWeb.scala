@@ -71,8 +71,11 @@ class DiaryWeb extends DiaryWebStack {
       rawEntryId <- getEither("entryId")(BadRequest()).right
       entryId <- toLongEither(rawEntryId)(BadRequest()).right
       commentedEntry <- app.find(userName, entryId).right
-    } yield commentedEntry) match {
-      case Right((entry, comments)) => interndiary.html.find(entry, comments)
+    } yield (userName, commentedEntry)) match {
+      case Right((userName, (entry, comments))) => {
+        val authorized: Boolean = app.isAuthorName(userName)
+        interndiary.html.find(entry, comments, authorized)
+      }
       case Left(error) => error
     }
   }

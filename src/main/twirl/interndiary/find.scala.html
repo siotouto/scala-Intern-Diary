@@ -1,4 +1,4 @@
-@(entry: interndiary.model.Entry, comments: Seq[interndiary.model.Comment])
+@(entry: interndiary.model.Entry, comments: Seq[interndiary.model.Comment], authorized: Boolean)
 @wrapper(entry.title){
 <p>
   @entry.body
@@ -13,6 +13,9 @@
 		  <li> @comment.commenterId : @comment.body , @comment.createdAt.toString <a href="./comment/delete/@comment.id">delete</a></li>
 		}
 </ul>
+@if(authorized) {
 <a href="./edit">Edit Entry</a>
 <a href="./delete">Delete Entry</a>
+} else {
+}
 }
