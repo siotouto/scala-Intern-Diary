@@ -65,7 +65,7 @@ class DiaryWeb extends DiaryWebStack {
     }
   }
 
-  get("/user/:userName/entry/:entryId/") {
+  get("/user/:userName/entry/:entryId") {
     val app = createApp()
 
     (for {

@@ -10,12 +10,12 @@
 </p>
 <ul>
   @for(comment <- comments) {
-		  <li> @comment.commenterId : @comment.body , @comment.createdAt.toString <a href="./comment/delete/@comment.id">delete</a></li>
+		  <li> @comment.commenterId : @comment.body , @comment.createdAt.toString <a href="@entry.id/comment/delete/@comment.id">delete</a></li>
 		}
 </ul>
 @if(authorized) {
-<a href="./edit">Edit Entry</a>
-<a href="./delete">Delete Entry</a>
+<a href="@entry.id/edit">Edit Entry</a>
+<a href="@entry.id/delete">Delete Entry</a>
 } else {
 }
 }
