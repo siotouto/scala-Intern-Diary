@@ -3,10 +3,8 @@ package interndiary.web
 import interndiary.service.{Context, DiaryApp}
 import org.scalatra._
 import scala.util.control.Exception.allCatch
-//import scala.util.Either.RightProjection
 
 class DiaryWeb extends DiaryWebStack {
-
 
   Context.setup("db.default")
   implicit val ctx = Context.createContext()
@@ -38,9 +36,9 @@ class DiaryWeb extends DiaryWebStack {
       userName <- getEither("userName")(BadRequest()).right
       entries <- app.read(userName, offset).right
     } yield (userName, entries)) match {
-      case Right((userName, (entries, preOffset, succOffset))) => {
+      case Right((userName, component)) => {
         val authorized: Boolean = app.isAuthorName(userName)
-        interndiary.html.read(userName, entries, preOffset, succOffset, authorized)
+        interndiary.html.read(userName, component, authorized)
       }
       case Left(error) => error
     }

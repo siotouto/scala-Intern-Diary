@@ -1,6 +1,6 @@
 package interndiary.service
 
-import interndiary.model.{Entry, User, Comment}
+import interndiary.model.{Entry, User, Comment, PagerResult}
 import interndiary.repository
 
 class DiaryApp(currentUserName: String) {
@@ -32,27 +32,22 @@ class DiaryApp(currentUserName: String) {
 
   def read(userName: String, offset: Int, pageSize: Int = 5)(implicit
     ctx: Context
-  ): Either[Error, (Seq[Entry], Option[Int], Option[Int])] = for {
+  ): Either[Error, PagerResult] = for {
     user <- {
       repository.Users.findByName(userName)
         .toRight(UserNotFoundError).right
     }
     entries <- {
-      repository.Entries.listByUser(user, offset, pageSize+1)
+      repository.Entries.listByUser(user, offset, pageSize + 1)
         .toRight(FailedToListDiaryError).right
     }
-  } yield (
+  } yield PagerResult(
     entries.take(pageSize),
-    if(offset <= 0)
-      None
-    else if(offset <= pageSize)
-      Some(0)
-    else
-      Some(offset - pageSize),
-    if(pageSize < entries.size)
-      Some(offset + pageSize)
-    else
-      None
+    Some(offset - pageSize)
+      .filter(_ =>offset > 0)
+      .map(_.max(0)),
+    Some(offset + pageSize)
+      .filter(_ => pageSize < entries.size)
   )
 
   def find(userName: String, entryId: Long)(implicit

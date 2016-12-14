@@ -1,8 +1,6 @@
 @(
 userName: String,
-entries: Seq[interndiary.model.Entry],
-preOffset: Option[Int],
-succOffset: Option[Int],
+property: interndiary.model.PagerResult,
 authorized: Boolean
 )
 @wrapper(userName + "'s diary"){
@@ -11,17 +9,17 @@ authorized: Boolean
 } else {
 }
 <div>
-  @if(preOffset.isDefined){
-  <a href="./?offset=@preOffset"><< Previous</a>
+  @if(property.preOffset.isDefined){
+  <a href="./?offset=@property.preOffset"><< Previous</a>
   } else {
   }
 				    
-  @if(succOffset.isDefined){
-  <a href="./?offset=@succOffset">Successor >></a>
+  @if(property.succOffset.isDefined){
+  <a href="./?offset=@property.succOffset">Successor >></a>
   } else {
   }
 </div>
-@for(entry <- entries) {
+@for(entry <- property.entries) {
 	      <h3>
 		<a href="entry/@entry.id/">
 		  <div>
