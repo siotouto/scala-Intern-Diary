@@ -30,22 +30,34 @@ class DiaryApp(currentUserName: String) {
     repository.Entries.create(currentUser.id, title, body)
       .toRight(FailedToEditEntryError)
 
-  def read(userName: String)(implicit
+  def read(userName: String, offset: Int, pageSize: Int = 5)(implicit
     ctx: Context
-  ): Either[Error, Seq[Entry]] = for {
+  ): Either[Error, (Seq[Entry], Option[Int], Option[Int])] = for {
     user <- {
       repository.Users.findByName(userName)
         .toRight(UserNotFoundError).right
     }
     entries <- {
-      repository.Entries.listByUser(user)
+      repository.Entries.listByUser(user, offset, pageSize+1)
         .toRight(FailedToListDiaryError).right
     }
-  } yield entries
+  } yield (
+    entries.take(pageSize),
+    if(offset <= 0)
+      None
+    else if(offset <= pageSize)
+      Some(0)
+    else
+      Some(offset - pageSize),
+    if(pageSize < entries.size)
+      Some(offset + pageSize)
+    else
+      None
+  )
 
   def find(userName: String, entryId: Long)(implicit
     ctx: Context
-  ): Either[Error, Tuple2[Entry, Seq[Comment]]] = for {
+  ): Either[Error, (Entry, Seq[Comment])] = for {
     entry <- findModule(userName, entryId).right
     comments <- repository.Comments.listByEntry(entryId).toRight(FailedToGetCommentsError).right
   } yield (entry, comments)

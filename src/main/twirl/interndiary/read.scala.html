@@ -1,9 +1,26 @@
-@(userName: String, entries: Seq[interndiary.model.Entry], authorized: Boolean)
+@(
+userName: String,
+entries: Seq[interndiary.model.Entry],
+preOffset: Option[Int],
+succOffset: Option[Int],
+authorized: Boolean
+)
 @wrapper(userName + "'s diary"){
 @if(authorized){
 <a href="/my/write">Write new entry</a>
 } else {
 }
+<div>
+  @if(preOffset.isDefined){
+  <a href="./?offset=@preOffset"><< Previous</a>
+  } else {
+  }
+				    
+  @if(succOffset.isDefined){
+  <a href="./?offset=@succOffset">Successor >></a>
+  } else {
+  }
+</div>
 @for(entry <- entries) {
 	      <h3>
 		<a href="entry/@entry.id/">

@@ -20,6 +20,9 @@ class DiaryWeb extends DiaryWebStack {
   def getEither[T](field: String)(left: T): Either[T, String] =
     params.get(field).toRight(left)
 
+  def toIntEither[T](intStr: String)(left: T): Either[T, Int] =
+    (allCatch opt intStr.toInt).toRight(left)
+
   def toLongEither[T](longStr: String)(left: T): Either[T, Long] =
     (allCatch opt longStr.toLong).toRight(left)
 
@@ -31,12 +34,13 @@ class DiaryWeb extends DiaryWebStack {
     val app = createApp()
 
     (for {
+      offset <- toIntEither(params.get("offset").getOrElse("0"))(BadRequest()).right
       userName <- getEither("userName")(BadRequest()).right
-      entries <- app.read(userName).right
+      entries <- app.read(userName, offset).right
     } yield (userName, entries)) match {
-      case Right((userName, entries)) => {
+      case Right((userName, (entries, preOffset, succOffset))) => {
         val authorized: Boolean = app.isAuthorName(userName)
-        interndiary.html.read(userName, entries, authorized)
+        interndiary.html.read(userName, entries, preOffset, succOffset, authorized)
       }
       case Left(error) => error
     }

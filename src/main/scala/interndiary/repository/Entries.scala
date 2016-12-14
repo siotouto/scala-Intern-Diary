@@ -36,13 +36,14 @@ object Entries {
     """.as[Entry].map(_.headOption)
   )
 
-  def listByUser(user: User)(implicit
+  def listByUser(user: User, offset: Int, limit: Int)(implicit
     ctx: Context
   ): Option[Seq[Entry]] = allCatch opt run(sql"""
         SELECT * 
         FROM entry 
         WHERE user_id = ${user.id}
         ORDER BY created_at DESC
+        LIMIT ${offset}, ${limit}
     """.as[Entry]
   )
 
