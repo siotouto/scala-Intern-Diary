@@ -166,9 +166,9 @@ class DiaryWeb extends DiaryWebStack {
     val app = createApp()
 
     (for {
-      userName <- getEither("userName")(BadRequest()).right
-      rawEntryId <- getEither("entryId")(BadRequest()).right
-      entryId <- toLongEither(rawEntryId)(BadRequest()).right
+      userName <- getEither("userName")(BadRequest("Invalid request.")).right
+      rawEntryId <- getEither("entryId")(BadRequest("Invalid request.")).right
+      entryId <- toLongEither(rawEntryId)(BadRequest("Entry id must be Integer.")).right
       commentedEntry <- app.delete(userName, entryId).right
     } yield commentedEntry) match {
       case Right(entry) => Found("/")
