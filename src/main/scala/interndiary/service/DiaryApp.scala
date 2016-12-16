@@ -44,7 +44,7 @@ class DiaryApp(currentUserName: String) {
   } yield PagerResult(
     entries.take(pageSize),
     Some(offset - pageSize)
-      .filter(_ =>offset > 0)
+      .filter(_ => offset > 0)
       .map(_.max(0)),
     Some(offset + pageSize)
       .filter(_ => pageSize < entries.size)
@@ -61,26 +61,16 @@ class DiaryApp(currentUserName: String) {
       ctx: Context
   ): Either[Error, Entry] = for {
     entry <- findModule(userName, entryId).right
-    _ <- {
-      if(isAuthorId(entry.userId))
-        repository.Entries.updateEntry(entry, title, body)
-          .toRight(FailedToEditEntryError).right
-      else
-        Left(UnauthorizedError).right
-    }
+    _ <- Some(entry.userId).filter(isAuthorId).toRight(UnauthorizedError).right
+    newEntry <- repository.Entries.update(entry, title, body).toRight(FailedToEditEntryError).right
   } yield entry
 
   def delete(userName :String, entryId: Long)(implicit
     ctx: Context
   ): Either[Error, Entry] = for {
     entry <- findModule(userName, entryId).right
-    _ <- {
-      if(isAuthorId(entry.userId))
-        repository.Entries.delete(entry)
-          .toRight(FailedToDeleteError).right
-      else
-        Left(UnauthorizedError).right
-    }
+    _ <- Some(entry.userId).filter(isAuthorId).toRight(UnauthorizedError).right
+    newEntry <- repository.Entries.delete(entry).toRight(FailedToDeleteError).right
   } yield entry
 
   /*

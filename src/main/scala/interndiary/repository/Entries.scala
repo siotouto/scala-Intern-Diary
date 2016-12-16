@@ -67,7 +67,7 @@ object Entries {
       """)).map(_ => entry)
   }
 
-  def updateEntry(entry: Entry, title: String, body: String)(implicit
+  def update(entry: Entry, title: String, body: String)(implicit
     ctx: Context
   ): Option[Entry] = {
     val updateTime: LocalDateTime = MyTime()

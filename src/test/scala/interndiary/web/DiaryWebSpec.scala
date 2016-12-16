@@ -1,11 +1,9 @@
 package interndiary.web
 
 import interndiary.helper.{SetupDB, WebUnitSpec}
-import interndiary.service.DiaryApp
 import interndiary.repository
-import interndiary.model.{Entry, User, Comment}
+import interndiary.model.{Entry, User}
 
-import javax.servlet.http.HttpServletRequest
 import scala.util.Random
 
 class DiaryWebForTest extends DiaryWeb {
@@ -27,6 +25,8 @@ class DiaryWebSpec extends WebUnitSpec with SetupDB {
       ctx: repository.Context
     ): User =
       repository.Users.findOrCreateByName(webUserName)
+
+    val nonExistUser = Random.nextInt().toString + "nonExist"
 
     def createEntry(): Entry = {
       val title: String = Random.nextInt().toString + "t"
@@ -64,6 +64,9 @@ class DiaryWebSpec extends WebUnitSpec with SetupDB {
       get(s"/user/${webUserName}/") {
         status shouldBe 200
       }
+      get(s"/user/${nonExistUser}/") {
+        status shouldBe 404
+      }
     }
 
     it("should show write page") {
@@ -100,8 +103,22 @@ class DiaryWebSpec extends WebUnitSpec with SetupDB {
         "/my/write",
         params = List("title" -> title, "body" -> body1)
       ) {
-        println(header)
-        println(body)
+        status shouldBe 400
+      }
+    }
+
+    it("should show entry page") {
+      val entry = createEntry()
+      get(s"/user/${webUserName}/entry/${entry.id}") {
+        status shouldBe 200
+      }
+      get(s"/user/${nonExistUser}/entry/${entry.id}") {
+        status shouldBe 404
+      }
+      get(s"/user/${webUserName}/entry/${Random.nextInt().toString}") {
+        status shouldBe 404
+      }
+      get(s"/user/${webUserName}/entry/${entry.title}") {
         status shouldBe 400
       }
     }
@@ -111,12 +128,21 @@ class DiaryWebSpec extends WebUnitSpec with SetupDB {
       get(s"/user/${webUserName}/entry/${entry.id}/edit") {
         status shouldBe 200
       }
+      get(s"/user/${nonExistUser}/entry/${entry.id}/edit") {
+        status shouldBe 404
+      }
+      get(s"/user/${webUserName}/entry/${Random.nextInt().toString}/edit") {
+        status shouldBe 404
+      }
+      get(s"/user/${webUserName}/entry/${entry.title}/edit") {
+        status shouldBe 400
+      }
     }
 
     it("should update an entry when entry is edited") {
       val entry = createEntry()
-      val newTitle: String = Random.nextInt().toString + "t"
-      val newBody: String = Random.nextInt().toString + "b"
+      val newTitle: String = Random.nextInt().toString + "nt"
+      val newBody: String = Random.nextInt().toString + "nb"
       post(
         s"/user/${webUserName}/entry/${entry.id}/edit",
         params = List("title" -> newTitle, "body" -> newBody)
@@ -130,25 +156,91 @@ class DiaryWebSpec extends WebUnitSpec with SetupDB {
       }
     }
 
+    it("should not update any entry when entry is edited to empty title") {
+      val entry = createEntry()
+      val newTitle: String = " \t  \n  "
+      val newBody: String = Random.nextInt().toString + "nb"
+      post(
+        s"/user/${webUserName}/entry/${entry.id}/edit",
+        params = List("title" -> newTitle, "body" -> newBody)
+      ) {
+        status shouldBe 400
+      }
+    }
+
     it("should show delete page") {
       val entry = createEntry()
       get(s"/user/${webUserName}/entry/${entry.id}/delete") {
         status shouldBe 200
       }
+      get(s"/user/${nonExistUser}/entry/${entry.id}/delete") {
+        status shouldBe 404
+      }
+      get(s"/user/${webUserName}/entry/${Random.nextInt().toString}/delete") {
+        status shouldBe 404
+      }
+      get(s"/user/${webUserName}/entry/${entry.title}/delete") {
+        status shouldBe 400
+      }
     }
 
-    it("should delete an entry when entry is deleted") {
+    it("should delete an entry when post deleting entry") {
       val entry = createEntry()
+      get(s"/user/${webUserName}/entry/${entry.id}") {
+        status shouldBe 200
+      }
+      get(s"/user/${webUserName}/entry/${entry.id}/edit") {
+        status shouldBe 200
+      }
+      get(s"/user/${webUserName}/entry/${entry.id}/delete") {
+        status shouldBe 200
+      }
       repository.Entries.findByUserAndEntryId(webUser, entry.id) shouldBe 'defined
+
       post(
         s"/user/${webUserName}/entry/${entry.id}/delete"
       ) {
         status shouldBe 302
         header.get("Location").get shouldBe "/"
-        repository.Entries.findByUserAndEntryId(webUser, entry.id) shouldBe 'empty
       }
+
+      get(s"/user/${webUserName}/entry/${entry.id}") {
+        status shouldBe 404
+      }
+      get(s"/user/${webUserName}/entry/${entry.id}/edit") {
+        status shouldBe 404
+      }
+      get(s"/user/${webUserName}/entry/${entry.id}/delete") {
+        status shouldBe 404
+      }
+      repository.Entries.findByUserAndEntryId(webUser, entry.id) shouldBe 'empty
     }
 
+    it("should be able to edit/delete entry by only author."){
+      val title: String = Random.nextInt().toString + "t"
+      val body: String = Random.nextInt().toString + "b"
+      val Some(entry) = repository.Entries.create(testUser.id, title, body)
+      get(s"/user/${testUserName}/entry/${entry.id}") {
+        status shouldBe 200
+      }
+      get(s"/user/${testUserName}/entry/${entry.id}/edit") {
+        status shouldBe 403
+      }
+      val newTitle: String = Random.nextInt().toString + "nt"
+      val newBody: String = Random.nextInt().toString + "nb"
+      post(
+        s"/user/${testUserName}/entry/${entry.id}/edit",
+        params = List("title" -> newTitle, "body" -> newBody)
+      ) {
+        status shouldBe 403
+      }
+      get(s"/user/${testUserName}/entry/${entry.id}/delete") {
+        status shouldBe 403
+      }
+      post(s"/user/${testUserName}/entry/${entry.id}/delete") {
+        status shouldBe 403
+      }
+    }
   }
 
 }
