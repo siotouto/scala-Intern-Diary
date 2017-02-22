@@ -1,0 +1,21 @@
+@(entry: interndiary.model.Entry, comments: Seq[interndiary.model.Comment], authorized: Boolean)
+@wrapper(entry.title){
+<p>
+  @entry.body
+</p>
+<p style="text-align: right; 
+	  border-top: 1px dashed #0077cc;
+	  border-bottom: 3px solid #0077cc;">
+  @entry.createdAt.toString
+</p>
+<ul>
+  @for(comment <- comments) {
+		  <li> @comment.commenterId : @comment.body , @comment.createdAt.toString <a href="@entry.id/comment/delete/@comment.id">delete</a></li>
+		}
+</ul>
+@if(authorized) {
+<a href="@entry.id/edit">Edit Entry</a>
+<a href="@entry.id/delete">Delete Entry</a>
+} else {
+}
+}

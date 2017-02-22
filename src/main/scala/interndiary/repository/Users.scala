@@ -22,6 +22,16 @@ object Users {
       """.as[User].map(_.headOption)
     )
 
+  def findById(userId: Long)(implicit
+    ctx: Context
+  ): Option[User] = 
+    run(sql"""
+        SELECT * 
+        FROM user 
+        WHERE id = ${userId} 
+        LIMIT 1
+      """.as[User].map(_.headOption)
+    )
 
   def createByName(userName: String)(implicit
     ctx: Context

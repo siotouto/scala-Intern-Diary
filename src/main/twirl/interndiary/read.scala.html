@@ -1,0 +1,50 @@
+@(
+userName: String,
+property: interndiary.model.PagerResult,
+authorized: Boolean
+)
+@wrapper(userName + "'s diary"){
+@if(authorized){
+<a href="/my/write">Write new entry</a>
+} else {
+}
+<div>
+  @if(property.preOffset.isDefined){
+  <a href="./?offset=@property.preOffset"><< Previous</a>
+  } else {
+  }
+				    
+  @if(property.succOffset.isDefined){
+  <a href="./?offset=@property.succOffset">Successor >></a>
+  } else {
+  }
+</div>
+@for(entry <- property.entries) {
+	      <h3>
+		<a href="entry/@entry.id">
+		  <div>
+		    <span>
+		      *
+		    </span>
+		    <span>
+		      @entry.title
+		    </span>
+		  </div>
+		</a>
+	      </h3>
+	      @if(authorized){
+	      <a href="entry/@entry.id/edit">
+		edit
+	      </a>
+	      } else {
+	      }
+<p>
+  @entry.body
+</p>
+<p style="text-align: right; 
+	  border-top: 1px dashed #0077cc;
+	  border-bottom: 3px solid #0077cc;">
+  @entry.createdAt.toString
+</p>
+}
+}

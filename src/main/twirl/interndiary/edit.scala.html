@@ -1,0 +1,11 @@
+@(entry: interndiary.model.Entry)
+@wrapper("Edit Entry"){
+<form action="edit" method="POST">
+  <dl>
+    <dt><label for="title">Title:</label></dt><dd><input type="text" name="title" size="80" value="@entry.title"></dd>
+    <dt><label for="body">Body:</label></dt>
+    <dd><textarea name="body" cols="80" rows="20">@entry.body</textarea></dd>
+  </dl>
+  <input type="submit" value="Send"/> <a href="../@entry.id">Back</a>
+</form>
+}

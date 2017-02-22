@@ -1,0 +1,11 @@
+@(userName: String)
+@wrapper("Write Entry: " + userName + "'s diary"){
+<form action="write" method="POST">
+  <dl>
+    <dt><label for="title">Title:</label></dt><dd><input type="text" name="title" size="80" value=""/></dd>
+    <dt><label for="body">Body:</label></dt>
+    <dd><textarea name="body" cols="80" rows="20" value=""/></textarea></dd>
+  </dl>
+  <input type="submit" value="Send"/>
+</form>
+}
